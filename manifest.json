@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "BLAZE – Twitch Token Sync",
+  "name": "TRAILBLAZER – Twitch Token Sync",
   "version": "1.0.0",
-  "description": "Automatically syncs your Twitch session token with BLAZE to enable automated video export.",
+  "description": "Automatically syncs your Twitch session token with TRAILBLAZER to enable automated video export.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -30,7 +30,7 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     },
-    "default_title": "BLAZE Token Sync"
+    "default_title": "TRAILBLAZER Token Sync"
   },
   "content_scripts": [
     {

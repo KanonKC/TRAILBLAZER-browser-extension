@@ -1,12 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
   const twitchStatusText = document.getElementById('twitch-status-text');
   const twitchDot = document.getElementById('twitch-dot');
-  const blazeStatusText = document.getElementById('blaze-status-text');
-  const blazeDot = document.getElementById('blaze-dot');
+  const trailblazerStatusText = document.getElementById('trailblazer-status-text');
+  const trailblazerDot = document.getElementById('trailblazer-dot');
   const lastSyncText = document.getElementById('last-sync-text');
   const syncBtn = document.getElementById('sync-btn');
   const alert = document.getElementById('alert');
   const alertText = document.getElementById('alert-text');
+  const retryTrailblazerBtn = document.getElementById('retry-trailblazer-btn');
 
   function updateStatus() {
     chrome.runtime.sendMessage({ type: 'GET_STATUS' }, (status) => {
@@ -21,17 +22,17 @@ document.addEventListener('DOMContentLoaded', () => {
         twitchDot.className = 'status-dot error';
       }
 
-      // Blaze Status
-      if (status.blazeConnected) {
-        blazeStatusText.textContent = 'Connected';
-        blazeDot.className = 'status-dot connected';
+      // TRAILBLAZER Status
+      if (status.trailblazerConnected) {
+        trailblazerStatusText.textContent = 'Connected';
+        trailblazerDot.className = 'status-dot connected';
       } else {
-        blazeStatusText.textContent = 'Not logged in';
-        blazeDot.className = 'status-dot error';
+        trailblazerStatusText.textContent = 'Not logged in';
+        trailblazerDot.className = 'status-dot error';
       }
 
       // Enable sync button only if both are connected
-      syncBtn.disabled = !(status.twitchConnected && status.blazeConnected);
+      syncBtn.disabled = !(status.twitchConnected && status.trailblazerConnected);
 
       // Last Sync
       if (status.lastSync) {
@@ -66,6 +67,22 @@ document.addEventListener('DOMContentLoaded', () => {
         showAlert('Sync successful!', true);
       } else {
         showAlert(`Sync failed: ${response?.reason || 'unknown error'}`);
+      }
+    });
+  });
+  
+  retryTrailblazerBtn.addEventListener('click', () => {
+    const icon = retryTrailblazerBtn.querySelector('svg');
+    icon.classList.add('spinning');
+    
+    chrome.runtime.sendMessage({ type: 'REFRESH_TRAILBLAZER' }, (response) => {
+      icon.classList.remove('spinning');
+      if (response && response.success) {
+        updateStatus();
+        showAlert('Account refreshed via API!', true);
+      } else {
+        updateStatus();
+        showAlert(`Could not refresh: ${response?.reason || 'Please log in again'}`);
       }
     });
   });

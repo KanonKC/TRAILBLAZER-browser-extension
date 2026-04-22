@@ -1,7 +1,7 @@
 {
   "name": "trailblazer-extension",
   "version": "1.0.0",
-  "description": "Automatically syncs your Twitch session token with BLAZE",
+  "description": "Automatically syncs your Twitch session token with TRAILBLAZER",
   "type": "module",
   "scripts": {
     "dev": "vite",
