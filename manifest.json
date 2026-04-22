@@ -16,8 +16,7 @@
   ],
   "host_permissions": [
     "https://*.twitch.tv/*",
-    "https://blaze-dev.kanonkc.com/*",
-    "http://localhost:8080/*"
+    "https://trailblazer-api.kanonkc.com/*"
   ],
   "background": {
     "service_worker": "background.js",
