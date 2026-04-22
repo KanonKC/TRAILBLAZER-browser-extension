@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLAZE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="popup">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <img src="icons/icon48.png" alt="BLAZE" class="logo-icon" />
+        <span class="logo-text">BLAZE</span>
+      </div>
+      <span class="version">v1.0.0</span>
+    </header>
+
+    <!-- Status Cards -->
+    <div class="status-section">
+      <div class="status-card" id="twitch-status">
+        <div class="status-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/>
+          </svg>
+        </div>
+        <div class="status-info">
+          <span class="status-label">Twitch</span>
+          <span class="status-value" id="twitch-status-text">Checking...</span>
+        </div>
+        <div class="status-dot" id="twitch-dot"></div>
+      </div>
+
+      <div class="status-card" id="blaze-status">
+        <div class="status-icon blaze-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13.5 1l-2 6h6L8.5 23l2-8H5z"/>
+          </svg>
+        </div>
+        <div class="status-info">
+          <span class="status-label">BLAZE Account</span>
+          <span class="status-value" id="blaze-status-text">Checking...</span>
+        </div>
+        <div class="status-dot" id="blaze-dot"></div>
+      </div>
+    </div>
+
+    <!-- Last Sync -->
+    <div class="sync-info">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <polyline points="1 20 1 14 7 14"></polyline>
+        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path>
+      </svg>
+      <span id="last-sync-text">Never synced</span>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions" id="actions-section">
+      <button class="btn btn-primary full-width" id="sync-btn" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path>
+        </svg>
+        Sync Now
+      </button>
+      <p class="hint-text">Please log in to Twitch and Blaze in your browser to enable syncing.</p>
+    </div>
+
+    <!-- Alert -->
+    <div class="alert" id="alert" style="display:none;">
+      <span id="alert-text"></span>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
