@@ -1,10 +1,13 @@
 // BLAZE Extension — Background Service Worker
 // Reads the Twitch auth-token cookie and syncs it to the Blaze backend.
 
-const BLAZE_API_URLS = [
-  "https://blaze-dev.kanonkc.com",
-  "http://localhost:8080"
-];
+const API_URL = import.meta.env.VITE_API_URL;
+
+if (!API_URL) {
+  throw new Error("VITE_API_URL environment variable is not set");
+}
+
+const BLAZE_API_URLS = [API_URL];
 
 const SYNC_ALARM_NAME = "blaze-token-sync";
 const SYNC_INTERVAL_MINUTES = 30;
@@ -150,7 +153,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     getActiveSession().then(async (session) => {
       const twitchToken = await getTwitchAuthToken();
       const lastSyncResult = await new Promise(resolve => chrome.storage.local.get(["last_sync"], r => resolve(r.last_sync || null)));
-      
+
       sendResponse({
         twitchConnected: !!twitchToken,
         blazeConnected: !!session.accessToken,

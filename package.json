@@ -1,0 +1,14 @@
+{
+  "name": "trailblazer-extension",
+  "version": "1.0.0",
+  "description": "Automatically syncs your Twitch session token with BLAZE",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.0.0-beta.23",
+    "vite": "^5.0.0"
+  }
+}
