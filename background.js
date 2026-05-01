@@ -2,12 +2,13 @@
 // Reads the Twitch auth-token cookie and syncs it to the TRAILBLAZER backend.
 
 const API_URL = import.meta.env.VITE_API_URL;
+const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL
 
 if (!API_URL) {
   throw new Error("VITE_API_URL environment variable is not set");
 }
 
-const TRAILBLAZER_API_URLS = [API_URL];
+const TRAILBLAZER_API_URLS = [API_URL, FRONTEND_URL];
 
 const SYNC_ALARM_NAME = "trailblazer-token-sync";
 const SYNC_INTERVAL_MINUTES = 30;
@@ -22,23 +23,34 @@ async function getTwitchAuthToken() {
   });
 }
 
-async function getTrailblazerAccessToken(apiUrl) {
-  return new Promise((resolve) => {
-    chrome.cookies.get({ url: apiUrl, name: "accessToken" }, (cookie) => {
-      resolve(cookie ? cookie.value : null);
-    });
-  });
+async function getTrailblazerTokens(apiUrl) {
+  const [accessToken, refreshToken] = await Promise.all([
+    new Promise((resolve) => {
+      chrome.cookies.get({ url: apiUrl, name: "accessToken" }, (cookie) => {
+        resolve(cookie ? cookie.value : null);
+      });
+    }),
+    new Promise((resolve) => {
+      chrome.cookies.get({ url: apiUrl, name: "refreshToken" }, (cookie) => {
+        resolve(cookie ? cookie.value : null);
+      });
+    })
+  ]);
+  return { accessToken, refreshToken };
 }
 
 async function getActiveSession() {
+  // Always use the primary API URL for network requests
+  const targetApiUrl = API_URL;
+
   // Try to detect token from known TRAILBLAZER domains
-  for (const apiUrl of TRAILBLAZER_API_URLS) {
-    const accessToken = await getTrailblazerAccessToken(apiUrl);
-    if (accessToken) {
-      return { accessToken, apiUrl };
+  for (const url of TRAILBLAZER_API_URLS) {
+    const tokens = await getTrailblazerTokens(url);
+    if (tokens.accessToken) {
+      return { ...tokens, apiUrl: targetApiUrl };
     }
   }
-  return { accessToken: null, apiUrl: TRAILBLAZER_API_URLS[0] };
+  return { accessToken: null, refreshToken: null, apiUrl: targetApiUrl };
 }
 
 // ─── Sync Logic ───────────────────────────────────────────────────────────────
@@ -94,9 +106,19 @@ async function syncToken() {
 
 async function refreshTrailblazerToken(apiUrl) {
   try {
+    const { refreshToken } = await getActiveSession();
+
+    if (!refreshToken) {
+      console.warn("[TRAILBLAZER] No refresh token cookie found.");
+      return { success: false, reason: "no_refresh_token" };
+    }
+
     const response = await fetch(`${apiUrl}/api/v1/refresh-token`, {
       method: "POST",
-      credentials: "include"
+      credentials: "include",
+      headers: {
+        "x-refresh-token": refreshToken // Keep for compatibility if backend is updated, but credentials: include handles the cookie
+      }
     });
 
     if (response.ok) {
@@ -136,7 +158,11 @@ chrome.cookies.onChanged.addListener((changeInfo) => {
 
 // Sync when the Blaze cookie changes
 chrome.cookies.onChanged.addListener((changeInfo) => {
-  const isTrailblazerDomain = TRAILBLAZER_API_URLS.some(url => changeInfo.cookie.domain.includes(new URL(url).hostname));
+  const isTrailblazerDomain = TRAILBLAZER_API_URLS.some(url => {
+    const hostname = new URL(url).hostname;
+    const cookieDomain = changeInfo.cookie.domain.startsWith('.') ? changeInfo.cookie.domain.slice(1) : changeInfo.cookie.domain;
+    return hostname.endsWith(cookieDomain);
+  });
   if (isTrailblazerDomain && changeInfo.cookie.name === "accessToken" && !changeInfo.removed) {
     console.log("[TRAILBLAZER] TRAILBLAZER access token detected, syncing...");
     syncToken();
@@ -165,31 +191,35 @@ chrome.runtime.onStartup.addListener(() => {
 
 // Message listener from popup
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message.type === "REFRESH_TRAILBLAZER") {
-    getActiveSession().then(async (session) => {
-      const result = await refreshTrailblazerToken(session.apiUrl);
-      sendResponse(result);
-    });
-    return true;
-  }
+  const handleMessage = async () => {
+    try {
+      if (message.type === "REFRESH_TRAILBLAZER") {
+        const session = await getActiveSession();
+        const result = await refreshTrailblazerToken(session.apiUrl);
+        sendResponse(result);
+      } else if (message.type === "SYNC_NOW") {
+        const result = await syncToken();
+        sendResponse(result);
+      } else if (message.type === "GET_STATUS") {
+        const session = await getActiveSession();
+        const twitchToken = await getTwitchAuthToken();
+        const lastSyncResult = await new Promise(resolve => 
+          chrome.storage.local.get(["last_sync"], r => resolve(r.last_sync || null))
+        );
 
-  if (message.type === "SYNC_NOW") {
-    syncToken().then(sendResponse);
-    return true; // keep channel open for async response
-  }
+        sendResponse({
+          twitchConnected: !!twitchToken,
+          trailblazerConnected: !!session.accessToken,
+          lastSync: lastSyncResult,
+          apiUrl: session.apiUrl
+        });
+      }
+    } catch (err) {
+      console.error(`[TRAILBLAZER] Error handling message ${message.type}:`, err);
+      sendResponse({ success: false, reason: err.message });
+    }
+  };
 
-  if (message.type === "GET_STATUS") {
-    getActiveSession().then(async (session) => {
-      const twitchToken = await getTwitchAuthToken();
-      const lastSyncResult = await new Promise(resolve => chrome.storage.local.get(["last_sync"], r => resolve(r.last_sync || null)));
-
-      sendResponse({
-        twitchConnected: !!twitchToken,
-        trailblazerConnected: !!session.accessToken,
-        lastSync: lastSyncResult,
-        apiUrl: session.apiUrl
-      });
-    });
-    return true;
-  }
+  handleMessage();
+  return true; // Keep channel open
 });

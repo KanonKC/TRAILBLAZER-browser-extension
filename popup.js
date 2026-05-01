@@ -71,21 +71,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
   
-  retryTrailblazerBtn.addEventListener('click', () => {
-    const icon = retryTrailblazerBtn.querySelector('svg');
-    icon.classList.add('spinning');
-    
-    chrome.runtime.sendMessage({ type: 'REFRESH_TRAILBLAZER' }, (response) => {
-      icon.classList.remove('spinning');
-      if (response && response.success) {
-        updateStatus();
-        showAlert('Account refreshed via API!', true);
-      } else {
-        updateStatus();
-        showAlert(`Could not refresh: ${response?.reason || 'Please log in again'}`);
-      }
+  if (retryTrailblazerBtn) {
+    retryTrailblazerBtn.addEventListener('click', () => {
+      const icon = retryTrailblazerBtn.querySelector('svg');
+      icon.classList.add('spinning');
+      retryTrailblazerBtn.disabled = true;
+      
+      chrome.runtime.sendMessage({ type: 'REFRESH_TRAILBLAZER' }, (response) => {
+        icon.classList.remove('spinning');
+        if (response && response.success) {
+          updateStatus();
+          showAlert('Account refreshed via API!', true);
+        } else {
+          updateStatus();
+          showAlert(`Could not refresh: ${response?.reason || 'Please log in again'}`);
+        }
+
+        // 5 second cooldown
+        setTimeout(() => {
+          retryTrailblazerBtn.disabled = false;
+        }, 5000);
+      });
     });
-  });
+  }
 
   // Initial update
   updateStatus();
