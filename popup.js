@@ -15,19 +15,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Twitch Status
       if (status.twitchConnected) {
-        twitchStatusText.textContent = 'Connected';
+        twitchStatusText.textContent = 'เชื่อมต่อแล้ว';
         twitchDot.className = 'status-dot connected';
       } else {
-        twitchStatusText.textContent = 'Not logged in';
+        twitchStatusText.textContent = 'ยังไม่ได้เข้าสู่ระบบ';
         twitchDot.className = 'status-dot error';
       }
 
       // TRAILBLAZER Status
       if (status.trailblazerConnected) {
-        trailblazerStatusText.textContent = 'Connected';
+        trailblazerStatusText.textContent = 'เชื่อมต่อแล้ว';
         trailblazerDot.className = 'status-dot connected';
       } else {
-        trailblazerStatusText.textContent = 'Not logged in';
+        trailblazerStatusText.textContent = 'ยังไม่ได้เข้าสู่ระบบ';
         trailblazerDot.className = 'status-dot error';
       }
 
@@ -37,9 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Last Sync
       if (status.lastSync) {
         const date = new Date(status.lastSync);
-        lastSyncText.textContent = `Last synced: ${date.toLocaleString()}`;
+        lastSyncText.textContent = `ซิงค์ล่าสุดเมื่อ: ${date.toLocaleString('th-TH')}`;
       } else {
-        lastSyncText.textContent = 'Never synced';
+        lastSyncText.textContent = 'ยังไม่มีการซิงค์';
       }
     });
   }
@@ -64,9 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (response && response.success) {
         updateStatus();
-        showAlert('Sync successful!', true);
+        showAlert('ซิงค์สำเร็จ!', true);
       } else {
-        showAlert(`Sync failed: ${response?.reason || 'unknown error'}`);
+        showAlert(`การซิงค์ล้มเหลว: ${response?.reason || 'เกิดข้อผิดพลาดที่ไม่รู้จัก'}`);
       }
     });
   });
@@ -81,10 +81,10 @@ document.addEventListener('DOMContentLoaded', () => {
         icon.classList.remove('spinning');
         if (response && response.success) {
           updateStatus();
-          showAlert('Account refreshed via API!', true);
+          showAlert('รีเฟรชบัญชีผ่าน API สำเร็จ!', true);
         } else {
           updateStatus();
-          showAlert(`Could not refresh: ${response?.reason || 'Please log in again'}`);
+          showAlert(`ไม่สามารถรีเฟรชได้: ${response?.reason || 'โปรดเข้าสู่ระบบใหม่อีกครั้ง'}`);
         }
 
         // 5 second cooldown
